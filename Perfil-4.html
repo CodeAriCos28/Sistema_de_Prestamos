@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil de Cliente - Sistema de Préstamos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f6f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            height: calc(100vh - 40px);
+            position: fixed;
+            border-radius: 8px;
+        }
+
+        .sidebar h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar ul li {
+            margin: 15px 0;
+        }
+
+        .sidebar ul li a {
+            color: white;
+            text-decoration: none;
+            padding: 10px;
+            display: block;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .sidebar ul li a:hover {
+            background: #34495e;
+        }
+
+        .container {
+            width: calc(100% - 290px);
+            margin-left: 290px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 5px 5px 0 0;
+            margin: -20px -20px 20px -20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .summary {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .summary h3 {
+            grid-column: span 2;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+
+        .content {
+            display: none;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .content.active {
+            display: grid;
+        }
+
+        .field {
+            margin-bottom: 10px;
+        }
+
+        .field label {
+            font-weight: bold;
+            display: block;
+            color: #555;
+        }
+
+        .field span {
+            display: block;
+            padding: 5px 10px;
+            background: #f9f9f9;
+            border-radius: 3px;
+        }
+
+        .toggle-section {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Estilos para la Tabla de Historia */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .history-table th, .history-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .history-table th {
+            background: #2c3e50;
+            color: white;
+        }
+
+        .history-table tr {
+            cursor: pointer;
+        }
+
+        .history-table tr:hover {
+            background: #f1f1f1;
+        }
+
+        .details {
+            display: none;
+            padding: 10px;
+            background: #f9f9f9;
+            border-left: 4px solid #2c3e50;
+        }
+
+        .details.active {
+            display: block;
+        }
+
+        @media (max-width: 900px) {
+            .sidebar {
+                width: 200px;
+            }
+            .container {
+                width: calc(100% - 240px);
+                margin-left: 240px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                flex-direction: column;
+                padding: 10px;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                margin-bottom: 20px;
+            }
+            .container {
+                width: 100%;
+                margin-left: 0;
+                padding: 10px;
+            }
+            .header {
+                margin: -10px -10px 15px -10px;
+            }
+            .summary {
+                grid-template-columns: 1fr;
+            }
+            .summary h3 {
+                grid-column: span 1;
+            }
+            .content.active {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Menú</h2>
+        <ul>
+            <li><a href="#summary">Resumen</a></li>
+            <li><a href="#personal">Datos Personales</a></li>
+            <li><a href="#financial">Información Financiera</a></li>
+            <li><a href="#loan">Datos del Préstamo</a></li>
+            <li><a href="#payment">Historial de Pagos</a></li>
+            <li><a href="#docs">Documentación</a></li>
+            <li><a href="#history">Tabla de Historia</a></li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>Perfil de Cliente</h1>
+            <p>Sistema de Préstamos Financieros</p>
+        </div>
+
+        <div class="summary" id="summary">
+            <h3>Resumen Ejecutivo</h3>
+            <div class="field">
+                <label>Cliente:</label>
+                <span id="summary-name">Juan Pérez López</span>
+            </div>
+            <div class="field">
+                <label>Monto Solicitado:</label>
+                <span id="summary-amount">$15,000.00</span>
+            </div>
+            <div class="field">
+                <label>Estado Crediticio:</label>
+                <span id="summary-status">Bueno</span>
+            </div>
+            <div class="field">
+                <label>Balance Pendiente:</label>
+                <span id="summary-balance">$9,000.00</span>
+            </div>
+            <div class="field">
+                <label>Total Pagado:</label>
+                <span id="summary-paid">$6,000.00</span>
+            </div>
+            <div class="field">
+                <label>Mora:</label>
+                <span id="summary-late">$50.00</span>
+            </div>
+        </div>
+
+        <div class="section" id="personal">
+            <h2 class="toggle-section">Datos Personales</h2>
+            <div class="content">
+                <div class="field">
+                    <label>Nombre completo:</label>
+                    <span>Juan Pérez López</span>
+                </div>
+                <div class="field">
+                    <label>Fecha de nacimiento:</label>
+                    <span>15/03/1985</span>
+                </div>
+                <div class="field">
+                    <label>Documento de identidad:</label>
+                    <span>DNI 12345678</span>
+                </div>
+                <div class="field">
+                    <label>Dirección:</label>
+                    <span>Calle Principal 123, Ciudad</span>
+                </div>
+                <div class="field">
+                    <label>Teléfono y correo:</label>
+                    <span>+52 555 123 4567 / juan.perez@email.com</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="financial">
+            <h2 class="toggle-section">Información Financiera</h2>
+            <div class="content">
+                <div class="field">
+                    <label>Ingresos mensuales:</label>
+                    <span>$3,500.00</span>
+                </div>
+                <div class="field">
+                    <label>Historial crediticio:</label>
+                    <span>Positivo - 750 puntos</span>
+                </div>
+                <div class="field">
+                    <label>Deudas activas:</label>
+                    <span>$2,000.00</span>
+                </div>
+                <div class="field">
+                    <label>Capacidad de pago:</label>
+                    <span>$1,200.00/mes</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="loan">
+            <h2 class="toggle-section">Datos del Préstamo</h2>
+            <div class="content">
+                <div class="field">
+                    <label>Tipo de préstamo:</label>
+                    <span>Personal</span>
+                </div>
+                <div class="field">
+                    <label>Monto solicitado:</label>
+                    <span>$15,000.00</span>
+                </div>
+                <div class="field">
+                    <label>Plazo de pago:</label>
+                    <span>24 meses</span>
+                </div>
+                <div class="field">
+                    <label>Tasa de interés:</label>
+                    <span>12% anual</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="payment">
+            <h2 class="toggle-section">Historial de Pagos</h2>
+            <div class="content">
+                <div class="field">
+                    <label>Pagos anteriores:</label>
+                    <span>12 pagos realizados</span>
+                </div>
+                <div class="field">
+                    <label>Retrasos o incumplimientos:</label>
+                    <span>1 retraso (3 días)</span>
+                </div>
+                <div class="field">
+                    <label>Penalizaciones aplicadas:</label>
+                    <span>$50.00</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="docs">
+            <h2 class="toggle-section">Documentación Adjunta</h2>
+            <div class="content">
+                <div class="field">
+                    <label>Comprobantes de ingresos:</label>
+                    <span>Adjuntados (3 meses)</span>
+                </div>
+                <div class="field">
+                    <label>Identificación oficial:</label>
+                    <span>DNI escaneado</span>
+                </div>
+                <div class="field">
+                    <label>Contrato firmado:</label>
+                    <span>Firmado electrónicamente</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="history">
+            <h2>Tabla de Historia</h2>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Monto Prestado</th>
+                        <th>Interés</th>
+                        <th>Balance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>01/01/2024</td>
+                        <td>$15,000.00</td>
+                        <td>12%</td>
+                        <td>$15,000.00</td>
+                    </tr>
+                    <tr class="details-row">
+                        <td colspan="4" class="details">
+                            <div><strong>Monto Pagado:</strong> $0.00</div>
+                            <div><strong>Fecha:</strong> 01/01/2024</div>
+                            <div><strong>Balance Pendiente:</strong> $15,000.00</div>
+                            <div><strong>Mora:</strong> $0.00</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>01/02/2024</td>
+                        <td>$0.00</td>
+                        <td>12%</td>
+                        <td>$14,375.00</td>
+                    </tr>
+                    <tr class="details-row">
+                        <td colspan="4" class="details">
+                            <div><strong>Monto Pagado:</strong> $625.00</div>
+                            <div><strong>Fecha:</strong> 01/02/2024</div>
+                            <div><strong>Balance Pendiente:</strong> $14,375.00</div>
+                            <div><strong>Mora:</strong> $0.00</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>05/03/2024</td>
+                        <td>$0.00</td>
+                        <td>12%</td>
+                        <td>$13,750.00</td>
+                    </tr>
+                    <tr class="details-row">
+                        <td colspan="4" class="details">
+                            <div><strong>Monto Pagado:</strong> $625.00</div>
+                            <div><strong>Fecha:</strong> 05/03/2024</div>
+                            <div><strong>Balance Pendiente:</strong> $13,750.00</div>
+                            <div><strong>Mora:</strong> $50.00</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.toggle-section').forEach(header => {
+            header.addEventListener('click', () => {
+                const content = header.nextElementSibling;
+                content.classList.toggle('active');
+            });
+        });
+
+        function updateSummary(name, amount, status, balance, paid, late) {
+            document.getElementById('summary-name').textContent = name;
+            document.getElementById('summary-amount').textContent = amount;
+            document.getElementById('summary-status').textContent = status;
+            document.getElementById('summary-balance').textContent = balance;
+            document.getElementById('summary-paid').textContent = paid;
+            document.getElementById('summary-late').textContent = late;
+        }
+
+        updateSummary('Juan Pérez López', '$15,000.00', 'Bueno', '$9,000.00', '$6,000.00', '$50.00');
+
+        document.querySelectorAll('.sidebar a').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                targetElement.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        // Funcionalidad para mostrar detalles en la Tabla de Historia
+        document.querySelectorAll('.history-table tbody tr:not(.details-row)').forEach(row => {
+            row.addEventListener('click', () => {
+                const detailsRow = row.nextElementSibling;
+                if (detailsRow && detailsRow.classList.contains('details-row')) {
+                    detailsRow.querySelector('.details').classList.toggle('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
