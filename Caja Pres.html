@@ -1,0 +1,2138 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Gestión de Pagos</title>
+  <style>
+    /* Base Styles & Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+
+    :root {
+      --primary-color: #2c3e50;
+      --secondary-color: #3498db;
+      --accent-color: #1abc9c;
+      --danger-color: #e74c3c;
+      --warning-color: #f39c12;
+      --success-color: #2ecc71;
+      --text-color: #333;
+      --text-light: #666;
+      --bg-color: #f9f9f9;
+      --card-bg: #fff;
+      --border-color: #eaeaea;
+      --sidebar-width: 250px;
+      --border-radius: 8px;
+      --shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      --transition: all 0.3s ease;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+
+    /* Layout */
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background-color: var(--primary-color);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      transition: var(--transition);
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 20px 0;
+    }
+
+    .sidebar-nav ul {
+      list-style: none;
+    }
+
+    .sidebar-nav li {
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
+    .sidebar-nav li:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar-nav li.active {
+      background-color: var(--secondary-color);
+      border-radius: 0 var(--border-radius) var(--border-radius) 0;
+    }
+
+    .icon {
+      margin-right: 10px;
+    }
+
+    .sidebar-footer {
+      padding: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    #close-day {
+      width: 100%;
+      padding: 10px;
+      background-color: var(--accent-color);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    #close-day:hover {
+      background-color: #16a085;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: var(--sidebar-width);
+      padding: 20px;
+      transition: var(--transition);
+    }
+
+    /* Summary Bar */
+    .summary-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .summary-item {
+      background-color: var(--card-bg);
+      padding: 20px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      text-align: center;
+      transition: var(--transition);
+    }
+
+    .summary-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .summary-label {
+      display: block;
+      font-size: 14px;
+      color: var(--text-light);
+      margin-bottom: 10px;
+    }
+
+    .summary-value {
+      display: block;
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--primary-color);
+    }
+
+    /* Search Container */
+    .search-container {
+      margin-bottom: 30px;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 20px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      font-size: 16px;
+      transition: var(--transition);
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    }
+
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 0 0 var(--border-radius) var(--border-radius);
+      box-shadow: var(--shadow);
+      max-height: 300px;
+      overflow-y: auto;
+      z-index: 10;
+      display: none;
+    }
+
+    .search-result-item {
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: var(--transition);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .search-result-item:last-child {
+      border-bottom: none;
+    }
+
+    .search-result-item:hover {
+      background-color: var(--bg-color);
+    }
+
+    /* Content Views */
+    .view {
+      background-color: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      padding: 30px;
+      margin-bottom: 30px;
+      transition: var(--transition);
+    }
+
+    .view-title {
+      font-size: 24px;
+      margin-bottom: 25px;
+      color: var(--primary-color);
+      position: relative;
+      padding-bottom: 10px;
+    }
+
+    .view-title::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 60px;
+      height: 3px;
+      background-color: var(--secondary-color);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Dashboard */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 20px;
+      transition: var(--transition);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border-color);
+    }
+
+    .card h3 {
+      font-size: 18px;
+      margin-bottom: 15px;
+      color: var(--text-light);
+    }
+
+    .card-value {
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 15px;
+    }
+
+    .card-footer {
+      text-align: right;
+    }
+
+    .view-all {
+      background: none;
+      border: none;
+      color: var(--secondary-color);
+      cursor: pointer;
+      font-size: 14px;
+      transition: var(--transition);
+      text-decoration: underline;
+    }
+
+    .view-all:hover {
+      color: var(--primary-color);
+    }
+
+    /* Form Styles */
+    .payment-form, .reconciliation-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 15px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      font-size: 16px;
+      transition: var(--transition);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .form-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      grid-column: 1 / -1;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: var(--transition);
+      font-size: 16px;
+    }
+
+    .primary-button {
+      background-color: var(--secondary-color);
+      color: white;
+    }
+
+    .primary-button:hover {
+      background-color: #2980b9;
+    }
+
+    .secondary-button {
+      background-color: #e9e9e9;
+      color: var(--text-color);
+    }
+
+    .secondary-button:hover {
+      background-color: #ddd;
+    }
+
+    /* Payment Details */
+    .payment-details {
+      background-color: #f7f9fc;
+      padding: 20px;
+      border-radius: var(--border-radius);
+      margin-bottom: 20px;
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .detail-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .detail-label {
+      font-size: 14px;
+      color: var(--text-light);
+      margin-bottom: 5px;
+    }
+
+    .detail-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--primary-color);
+    }
+
+    /* Table Styles */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      white-space: nowrap;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      background-color: #f7f9fc;
+      font-weight: 600;
+      color: var(--text-light);
+    }
+
+    tbody tr {
+      transition: var(--transition);
+    }
+
+    tbody tr:hover {
+      background-color: #f7f9fc;
+    }
+
+    /* Filters */
+    .filters, .history-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+      align-items: flex-end;
+    }
+
+    .filter-group {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    /* Status Colors */
+    .status {
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      display: inline-block;
+    }
+
+    .status-pending {
+      background-color: #fef9e7;
+      color: var(--warning-color);
+    }
+
+    .status-paid {
+      background-color: #eafaf1;
+      color: var(--success-color);
+    }
+
+    .status-late {
+      background-color: #fdedec;
+      color: var(--danger-color);
+    }
+
+    /* Balance Summary */
+    .balance-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .balance-card {
+      background-color: #f7f9fc;
+      padding: 20px;
+      border-radius: var(--border-radius);
+      text-align: center;
+    }
+
+    .balance-card h3 {
+      font-size: 16px;
+      margin-bottom: 10px;
+      color: var(--text-light);
+    }
+
+    .balance-value {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--primary-color);
+    }
+
+    .cash-reconciliation {
+      background-color: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .cash-reconciliation h3 {
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: var(--primary-color);
+    }
+
+    .day-closure {
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    /* Modals */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 30px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 24px;
+      color: var(--text-light);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .close-modal:hover {
+      color: var(--danger-color);
+    }
+
+    .modal-content h2 {
+      margin-bottom: 20px;
+      color: var(--primary-color);
+    }
+
+    .modal-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    /* Action Buttons */
+    .action-button {
+      background: none;
+      border: none;
+      color: var(--secondary-color);
+      cursor: pointer;
+      padding: 5px;
+      transition: var(--transition);
+    }
+
+    .action-button:hover {
+      color: var(--primary-color);
+    }
+
+    .action-button.delete {
+      color: var(--danger-color);
+    }
+
+    .action-button.delete:hover {
+      color: #c0392b;
+    }
+
+    /* Cliente Expandible en Gestión de Pagos */
+    .client-row {
+      cursor: pointer;
+    }
+
+    .client-details {
+      display: none;
+      background-color: #f8f9fa;
+      padding: 0;
+    }
+
+    .client-details.expanded {
+      display: table-row;
+    }
+
+    .client-details-content {
+      padding: 20px;
+      column-span: all;
+    }
+
+    .payment-row {
+      background-color: #f1f5f9;
+    }
+
+    .payment-row:nth-child(even) {
+      background-color: #e9eef5;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .view:not(.hidden) {
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 80px;
+        overflow: hidden;
+      }
+      
+      .sidebar-nav li span:not(.icon) {
+        display: none;
+      }
+      
+      .main-content {
+        margin-left: 80px;
+      }
+      
+      .logo {
+        font-size: 18px;
+      }
+      
+      .card-value {
+        font-size: 20px;
+      }
+      
+      .summary-value {
+        font-size: 18px;
+      }
+      
+      .form-buttons {
+        flex-direction: column;
+      }
+      
+      button {
+        width: 100%;
+      }
+
+      .filters, .history-filters {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .summary-bar {
+        grid-template-columns: 1fr;
+      }
+      
+      .filters, .payment-form, .reconciliation-form {
+        grid-template-columns: 1fr;
+      }
+      
+      .payment-details {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .print-section {
+      display: none;
+    }
+
+    @media print {
+      .sidebar, .summary-bar, .search-container, .form-buttons, .filters, button:not(.print-button) {
+        display: none;
+      }
+
+      .print-section {
+        display: block;
+      }
+
+      .main-content {
+        margin-left: 0;
+        padding: 0;
+      }
+
+      .view {
+        box-shadow: none;
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1 class="logo">PayBox</h1>
+      </div>
+      <nav class="sidebar-nav">
+        <ul>
+          <li class="active" data-view="dashboard"><span class="icon">📊</span> Dashboard</li>
+          <li data-view="payments"><span class="icon">💰</span> Registro de Pagos</li>
+          <li data-view="management"><span class="icon">📝</span> Gestión de Pagos</li>
+          <li data-view="daily-balance"><span class="icon">🧾</span> Cuadre Diario</li>
+          <li data-view="history"><span class="icon">📚</span> Historial</li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="close-day">Cerrar Día</button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Summary Bar -->
+      <div class="summary-bar">
+        <div class="summary-item">
+          <span class="summary-label">Pagos Pendientes</span>
+          <span class="summary-value" id="pending-payments">0</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Pagos Completados</span>
+          <span class="summary-value" id="completed-payments">0</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Total Recaudado Hoy</span>
+          <span class="summary-value" id="today-total">$0.00</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Balance de Caja</span>
+          <span class="summary-value" id="cash-balance">$0.00</span>
+        </div>
+      </div>
+
+      <!-- Content Views -->
+      <div class="content-views">
+        <!-- Dashboard View -->
+        <div class="view" id="dashboard-view">
+          <h2 class="view-title">Dashboard</h2>
+          <div class="dashboard-grid">
+            <div class="card">
+              <h3>Pagos Pendientes Hoy</h3>
+              <p class="card-value" id="today-pending">0</p>
+              <div class="card-footer">
+                <button class="view-all" data-target="management">Ver todos</button>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Pagos Recibidos Hoy</h3>
+              <p class="card-value" id="today-received">0</p>
+              <div class="card-footer">
+                <button class="view-all" data-target="payments">Ver todos</button>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Estado de Caja</h3>
+              <p class="card-value" id="cash-status">Cuadrada</p>
+              <div class="card-footer">
+                <button class="view-all" data-target="daily-balance">Ver detalles</button>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Total Por Cobrar</h3>
+              <p class="card-value" id="total-receivable">$0.00</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payments Registration View -->
+        <div class="view hidden" id="payments-view">
+          <h2 class="view-title">Registro de Pagos</h2>
+          
+          <!-- Barra de búsqueda para clientes -->
+          <div class="search-container">
+            <input type="text" id="client-search" class="search-input" placeholder="Buscar cliente por nombre o DNI...">
+            <div id="client-search-results" class="search-results"></div>
+          </div>
+          
+          <div class="payment-form">
+            <div class="form-group">
+              <label for="client-select">Cliente:</label>
+              <select id="client-select">
+                <option value="">Seleccionar cliente...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="client-dni">DNI/Cédula:</label>
+              <input type="text" id="client-dni" readonly>
+            </div>
+            <div class="form-group">
+              <label for="loan-select">Préstamo:</label>
+              <select id="loan-select" disabled>
+                <option value="">Seleccionar préstamo...</option>
+              </select>
+            </div>
+            <div class="payment-details">
+              <div class="detail-item">
+                <span class="detail-label">Monto de Cuota:</span>
+                <span class="detail-value" id="fee-amount">$0.00</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Fecha Límite:</span>
+                <span class="detail-value" id="due-date">--/--/----</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Pagos Realizados:</span>
+                <span class="detail-value" id="payments-made">0/0</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Balance Pendiente:</span>
+                <span class="detail-value" id="pending-balance">$0.00</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="payment-amount">Monto a Pagar:</label>
+              <input type="number" id="payment-amount" min="0" step="0.01" readonly>
+            </div>
+            <div class="form-group">
+              <label for="amount-received">Monto Recibido:</label>
+              <input type="number" id="amount-received" min="0" step="0.01">
+            </div>
+            <div class="form-group">
+              <label for="change-amount">Cambio:</label>
+              <input type="number" id="change-amount" readonly>
+            </div>
+            <div class="form-group">
+              <label for="payment-method">Método de Pago:</label>
+              <select id="payment-method">
+                <option value="cash">Efectivo</option>
+                <option value="transfer">Transferencia</option>
+                <option value="card">Tarjeta</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="payment-notes">Notas:</label>
+              <textarea id="payment-notes"></textarea>
+            </div>
+            <div class="form-buttons">
+              <button id="register-payment" class="primary-button">Registrar Pago</button>
+              <button id="clear-payment-form" class="secondary-button">Limpiar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Management View -->
+        <div class="view hidden" id="management-view">
+          <h2 class="view-title">Gestión de Pagos</h2>
+          
+          <div class="filters">
+            <div class="filter-group">
+              <label for="management-search">Buscar (Nombre o DNI):</label>
+              <input type="text" id="management-search" class="search-input" placeholder="Nombre o DNI del cliente">
+            </div>
+            <div class="filter-group">
+              <label for="status-filter">Estado:</label>
+              <select id="status-filter">
+                <option value="all">Todos</option>
+                <option value="pending">Pendientes</option>
+                <option value="paid">Pagados</option>
+                <option value="late">Atrasados</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="date-filter">Fecha:</label>
+              <input type="date" id="date-filter">
+            </div>
+            <button id="apply-filters" class="primary-button">Aplicar Filtros</button>
+            <button id="clear-filters" class="secondary-button">Limpiar</button>
+          </div>
+          
+          <div class="table-container">
+            <table id="clients-table">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>DNI/Cédula</th>
+                  <th>Préstamos</th>
+                  <th>Total Pendiente</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="clients-table-body">
+                <!-- Client rows will be inserted here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Daily Balance View -->
+        <div class="view hidden" id="daily-balance-view">
+          <h2 class="view-title">Cuadre Diario</h2>
+          
+          <div class="balance-summary">
+            <div class="balance-card">
+              <h3>Monto Inicial</h3>
+              <p class="balance-value" id="initial-amount">$0.00</p>
+            </div>
+            <div class="balance-card">
+              <h3>Ingresos Totales</h3>
+              <p class="balance-value" id="total-income">$0.00</p>
+            </div>
+            <div class="balance-card">
+              <h3>Efectivo</h3>
+              <p class="balance-value" id="cash-income">$0.00</p>
+            </div>
+            <div class="balance-card">
+              <h3>Transferencias</h3>
+              <p class="balance-value" id="transfer-income">$0.00</p>
+            </div>
+            <div class="balance-card">
+              <h3>Tarjetas</h3>
+              <p class="balance-value" id="card-income">$0.00</p>
+            </div>
+          </div>
+          
+          <div class="cash-reconciliation">
+            <h3>Reconciliación de Caja</h3>
+            <div class="reconciliation-form">
+              <div class="form-group">
+                <label for="initial-cash">Monto Inicial:</label>
+                <input type="number" id="initial-cash" min="0" step="0.01">
+              </div>
+              <div class="form-group">
+                <label for="counted-cash">Efectivo Contado:</label>
+                <input type="number" id="counted-cash" min="0" step="0.01">
+              </div>
+              <div class="form-group">
+                <label for="expected-cash">Efectivo Esperado:</label>
+                <input type="text" id="expected-cash" readonly>
+              </div>
+              <div class="form-group">
+                <label for="cash-difference">Diferencia:</label>
+                <input type="text" id="cash-difference" readonly>
+              </div>
+              <div class="form-group">
+                <label for="difference-notes">Notas sobre Diferencia:</label>
+                <textarea id="difference-notes"></textarea>
+              </div>
+            </div>
+          </div>
+          
+          <div class="day-closure">
+            <button id="reconcile-cash" class="primary-button">Reconciliar Caja</button>
+            <button id="print-balance" class="secondary-button">Imprimir Reporte</button>
+          </div>
+        </div>
+
+        <!-- History View -->
+        <div class="view hidden" id="history-view">
+          <h2 class="view-title">Historial de Cierres</h2>
+          <div class="history-filters">
+            <div class="filter-group">
+              <label for="history-month">Mes:</label>
+              <select id="history-month">
+                <option value="">Todos</option>
+                <option value="1">Enero</option>
+                <option value="2">Febrero</option>
+                <option value="3">Marzo</option>
+                <option value="4">Abril</option>
+                <option value="5">Mayo</option>
+                <option value="6">Junio</option>
+                <option value="7">Julio</option>
+                <option value="8">Agosto</option>
+                <option value="9">Septiembre</option>
+                <option value="10">Octubre</option>
+                <option value="11">Noviembre</option>
+                <option value="12">Diciembre</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="history-year">Año:</label>
+              <select id="history-year">
+                <!-- Will be populated with JavaScript -->
+              </select>
+            </div>
+            <button id="apply-history-filters" class="primary-button">Aplicar</button>
+          </div>
+          <div class="table-container">
+            <table id="history-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Total Recaudado</th>
+                  <th>Efectivo</th>
+                  <th>Transferencias</th>
+                  <th>Tarjetas</th>
+                  <th>Diferencia</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="history-table-body">
+                <!-- History rows will be inserted here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modals -->
+  <div class="modal" id="payment-detail-modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h2>Detalle de Pago</h2>
+      <div id="payment-detail-content"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="client-payments-modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h2>Pagos del Cliente</h2>
+      <div id="client-payments-content">
+        <div class="table-container">
+          <table id="client-payments-table">
+            <thead>
+              <tr>
+                <th>Préstamo #</th>
+                <th>Cuota</th>
+                <th>Fecha Límite</th>
+                <th>Estado</th>
+                <th>Monto</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="client-payments-table-body">
+              <!-- Payment rows will be inserted here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="day-close-modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h2>Cerrar Día</h2>
+      <p>¿Está seguro que desea cerrar el día? Esta acción no se puede deshacer.</p>
+      <div id="day-close-preview">
+        <h3>Resumen del día:</h3>
+        <div class="table-container">
+          <table>
+            <tr>
+              <td><strong>Fecha:</strong></td>
+              <td id="preview-date"></td>
+            </tr>
+            <tr>
+              <td><strong>Monto Inicial:</strong></td>
+              <td id="preview-initial"></td>
+            </tr>
+            <tr>
+              <td><strong>Total Recaudado:</strong></td>
+              <td id="preview-total"></td>
+            </tr>
+            <tr>
+              <td><strong>Efectivo:</strong></td>
+              <td id="preview-cash"></td>
+            </tr>
+            <tr>
+              <td><strong>Transferencias:</strong></td>
+              <td id="preview-transfer"></td>
+            </tr>
+            <tr>
+              <td><strong>Tarjetas:</strong></td>
+              <td id="preview-card"></td>
+            </tr>
+            <tr>
+              <td><strong>Efectivo Contado:</strong></td>
+              <td id="preview-counted"></td>
+            </tr>
+            <tr>
+              <td><strong>Diferencia:</strong></td>
+              <td id="preview-difference"></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+      <div class="modal-buttons">
+        <button id="confirm-close-day" class="primary-button">Confirmar</button>
+        <button id="cancel-close-day" class="secondary-button">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="balance-detail-modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h2>Detalle de Cierre</h2>
+      <div id="balance-detail-content"></div>
+      <div class="modal-buttons">
+        <button id="print-detail" class="secondary-button">Imprimir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sección para impresión -->
+  <div class="print-section" id="print-area">
+    <h1>Reporte de Cierre Diario</h1>
+    <div id="print-content"></div>
+  </div>
+
+  <script>
+    // Datos de demostración
+    let clients = [
+      { id: 1, name: "Juan Pérez", dni: "001-0012345-6", phone: "809-555-1234" },
+      { id: 2, name: "María Rodríguez", dni: "402-1234567-8", phone: "829-555-5678" },
+      { id: 3, name: "Carlos Sánchez", dni: "223-9876543-2", phone: "849-555-9012" },
+      { id: 4, name: "Ana Martínez", dni: "031-4567890-1", phone: "809-555-3456" },
+      { id: 5, name: "Luis González", dni: "402-7654321-0", phone: "829-555-7890" }
+    ];
+
+    let loans = [
+      { id: 1, clientId: 1, loanNumber: "P-2024-001", amount: 10000, term: 10, feeAmount: 1200, startDate: "2024-01-15" },
+      { id: 2, clientId: 1, loanNumber: "P-2024-002", amount: 5000, term: 5, feeAmount: 1100, startDate: "2024-02-10" },
+      { id: 3, clientId: 2, loanNumber: "P-2024-003", amount: 15000, term: 12, feeAmount: 1400, startDate: "2024-01-05" },
+      { id: 4, clientId: 3, loanNumber: "P-2024-004", amount: 20000, term: 15, feeAmount: 1600, startDate: "2024-02-20" },
+      { id: 5, clientId: 4, loanNumber: "P-2024-005", amount: 8000, term: 8, feeAmount: 1150, startDate: "2024-03-01" },
+      { id: 6, clientId: 5, loanNumber: "P-2024-006", amount: 12000, term: 10, feeAmount: 1350, startDate: "2024-02-15" }
+    ];
+
+    let payments = [
+      { id: 1, loanId: 1, installmentNumber: 1, amount: 1200, dueDate: "2024-02-15", status: "paid", paymentDate: "2024-02-14", method: "cash" },
+      { id: 2, loanId: 1, installmentNumber: 2, amount: 1200, dueDate: "2024-03-15", status: "paid", paymentDate: "2024-03-15", method: "transfer" },
+      { id: 3, loanId: 1, installmentNumber: 3, amount: 1200, dueDate: "2024-04-15", status: "pending", paymentDate: null, method: null },
+      { id: 4, loanId: 2, installmentNumber: 1, amount: 1100, dueDate: "2024-03-10", status: "paid", paymentDate: "2024-03-10", method: "cash" },
+      { id: 5, loanId: 2, installmentNumber: 2, amount: 1100, dueDate: "2024-04-10", status: "pending", paymentDate: null, method: null },
+      { id: 6, loanId: 3, installmentNumber: 1, amount: 1400, dueDate: "2024-02-05", status: "paid", paymentDate: "2024-02-05", method: "cash" },
+      { id: 7, loanId: 3, installmentNumber: 2, amount: 1400, dueDate: "2024-03-05", status: "paid", paymentDate: "2024-03-05", method: "cash" },
+      { id: 8, loanId: 3, installmentNumber: 3, amount: 1400, dueDate: "2024-04-05", status: "pending", paymentDate: null, method: null },
+      { id: 9, loanId: 4, installmentNumber: 1, amount: 1600, dueDate: "2024-03-20", status: "paid", paymentDate: "2024-03-20", method: "card" },
+      { id: 10, loanId: 4, installmentNumber: 2, amount: 1600, dueDate: "2024-04-20", status: "pending", paymentDate: null, method: null },
+      { id: 11, loanId: 5, installmentNumber: 1, amount: 1150, dueDate: "2024-04-01", status: "pending", paymentDate: null, method: null },
+      { id: 12, loanId: 6, installmentNumber: 1, amount: 1350, dueDate: "2024-03-15", status: "paid", paymentDate: "2024-03-15", method: "transfer" },
+      { id: 13, loanId: 6, installmentNumber: 2, amount: 1350, dueDate: "2024-04-15", status: "pending", paymentDate: null, method: null }
+    ];
+
+    let closedDays = [
+      { id: 1, date: "2024-03-15", initialAmount: 5000, totalIncome: 4950, cashIncome: 2800, transferIncome: 1350, cardIncome: 800, countedCash: 7750, difference: -50, notes: "Faltante mínimo en caja." },
+      { id: 2, date: "2024-03-16", initialAmount: 7750, totalIncome: 3150, cashIncome: 1600, transferIncome: 0, cardIncome: 1550, countedCash: 9300, difference: -50, notes: "" },
+      { id: 3, date: "2024-03-17", initialAmount: 9300, totalIncome: 2750, cashIncome: 1400, transferIncome: 1350, cardIncome: 0, countedCash: 10650, difference: -50, notes: "" }
+    ];
+
+    // Variables globales
+    let currentView = 'dashboard';
+    let initialCashAmount = 0;
+
+    // Formatear moneda
+    function formatCurrency(amount) {
+      return '$' + parseFloat(amount).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    }
+
+    // Formatear fecha
+    function formatDate(dateString) {
+      const options = { year: 'numeric', month: 'short', day: 'numeric' };
+      return new Date(dateString).toLocaleDateString('es-ES', options);
+    }
+
+    // Evento cuando el DOM está cargado
+    document.addEventListener('DOMContentLoaded', function() {
+      // Inicializar navegación
+      initNavigation();
+      
+      // Inicializar formularios
+      initForms();
+      
+      // Cargar datos iniciales
+      loadInitialData();
+      
+      // Inicializar eventos
+      initEvents();
+      
+      // Mostrar dashboard por defecto
+      updateSummary();
+    });
+
+    // Inicializar navegación
+    function initNavigation() {
+      const navItems = document.querySelectorAll('.sidebar-nav li');
+      
+      navItems.forEach(item => {
+        item.addEventListener('click', function() {
+          const viewName = this.getAttribute('data-view');
+          
+          // Actualizar clases activas
+          navItems.forEach(i => i.classList.remove('active'));
+          this.classList.add('active');
+          
+          // Ocultar todas las vistas y mostrar la seleccionada
+          document.querySelectorAll('.view').forEach(view => {
+            view.classList.add('hidden');
+          });
+          
+          document.getElementById(viewName + '-view').classList.remove('hidden');
+          currentView = viewName;
+          
+          // Actualizar datos específicos de la vista
+          if (viewName === 'management') {
+            loadClientsTable();
+          } else if (viewName === 'history') {
+            loadHistoryTable();
+          }
+        });
+      });
+      
+      // Botones "Ver todos"
+      document.querySelectorAll('.view-all').forEach(button => {
+        button.addEventListener('click', function() {
+          const targetView = this.getAttribute('data-target');
+          document.querySelector(`[data-view="${targetView}"]`).click();
+        });
+      });
+    }
+
+    // Inicializar formularios
+    function initForms() {
+      // Formulario de pagos
+      const clientSelect = document.getElementById('client-select');
+      const loanSelect = document.getElementById('loan-select');
+      
+      // Poblar el selector de clientes
+      clients.forEach(client => {
+        const option = document.createElement('option');
+        option.value = client.id;
+        option.textContent = client.name;
+        clientSelect.appendChild(option);
+      });
+      
+      // Evento de cambio para cliente seleccionado
+      clientSelect.addEventListener('change', function() {
+        const clientId = parseInt(this.value);
+        document.getElementById('client-dni').value = '';
+        document.getElementById('fee-amount').textContent = '$0.00';
+        document.getElementById('due-date').textContent = '--/--/----';
+        document.getElementById('payments-made').textContent = '0/0';
+        document.getElementById('pending-balance').textContent = '$0.00';
+        document.getElementById('payment-amount').value = '';
+        
+        // Limpiar y desactivar selector de préstamos si no hay cliente
+        loanSelect.innerHTML = '<option value="">Seleccionar préstamo...</option>';
+        
+        if (clientId) {
+          // Encontrar cliente y mostrar DNI
+          const client = clients.find(c => c.id === clientId);
+          if (client) {
+            document.getElementById('client-dni').value = client.dni;
+          }
+          
+          // Activar selector de préstamos y poblarlo
+          loanSelect.disabled = false;
+          const clientLoans = loans.filter(loan => loan.clientId === clientId);
+          clientLoans.forEach(loan => {
+            const option = document.createElement('option');
+            option.value = loan.id;
+            option.textContent = `${loan.loanNumber} - $${loan.amount}`;
+            loanSelect.appendChild(option);
+          });
+        } else {
+          loanSelect.disabled = true;
+        }
+      });
+      
+      // Evento de cambio para préstamo seleccionado
+      loanSelect.addEventListener('change', function() {
+        const loanId = parseInt(this.value);
+        document.getElementById('fee-amount').textContent = '$0.00';
+        document.getElementById('due-date').textContent = '--/--/----';
+        document.getElementById('payments-made').textContent = '0/0';
+        document.getElementById('pending-balance').textContent = '$0.00';
+        document.getElementById('payment-amount').value = '';
+        
+        if (loanId) {
+          // Encontrar préstamo
+          const loan = loans.find(l => l.id === loanId);
+          if (loan) {
+            // Encontrar pagos para este préstamo
+            const loanPayments = payments.filter(p => p.loanId === loanId);
+            const paidPayments = loanPayments.filter(p => p.status === 'paid').length;
+            const nextPayment = loanPayments.find(p => p.status === 'pending');
+            
+            // Actualizar detalles del pago
+            document.getElementById('fee-amount').textContent = formatCurrency(loan.feeAmount);
+            document.getElementById('payments-made').textContent = `${paidPayments}/${loan.term}`;
+            
+            const pendingBalance = loan.feeAmount * (loan.term - paidPayments);
+            document.getElementById('pending-balance').textContent = formatCurrency(pendingBalance);
+            
+            if (nextPayment) {
+              document.getElementById('due-date').textContent = formatDate(nextPayment.dueDate);
+              document.getElementById('payment-amount').value = nextPayment.amount;
+            }
+          }
+        }
+      });
+      
+      // Cálculo del cambio
+      const paymentAmount = document.getElementById('payment-amount');
+      const amountReceived = document.getElementById('amount-received');
+      const changeAmount = document.getElementById('change-amount');
+      
+      amountReceived.addEventListener('input', function() {
+        if (paymentAmount.value && this.value) {
+          const change = parseFloat(this.value) - parseFloat(paymentAmount.value);
+          changeAmount.value = change >= 0 ? change.toFixed(2) : 0;
+        } else {
+          changeAmount.value = '';
+        }
+      });
+      
+      // Inicializar búsqueda de clientes
+      const clientSearch = document.getElementById('client-search');
+      const clientSearchResults = document.getElementById('client-search-results');
+      
+      clientSearch.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        if (searchTerm.length < 2) {
+          clientSearchResults.style.display = 'none';
+          return;
+        }
+        
+        // Filtrar clientes por nombre o DNI
+        const filtered = clients.filter(client => 
+          client.name.toLowerCase().includes(searchTerm) || 
+          client.dni.includes(searchTerm)
+        );
+        
+        // Mostrar resultados
+        clientSearchResults.innerHTML = '';
+        
+        if (filtered.length > 0) {
+          filtered.forEach(client => {
+            const resultItem = document.createElement('div');
+            resultItem.className = 'search-result-item';
+            resultItem.textContent = `${client.name} - ${client.dni}`;
+            resultItem.addEventListener('click', function() {
+              clientSelect.value = client.id;
+              clientSelect.dispatchEvent(new Event('change'));
+              clientSearch.value = client.name;
+              clientSearchResults.style.display = 'none';
+            });
+            clientSearchResults.appendChild(resultItem);
+          });
+          clientSearchResults.style.display = 'block';
+        } else {
+          clientSearchResults.style.display = 'none';
+        }
+      });
+      
+      // Ocultar resultados al hacer clic fuera
+      document.addEventListener('click', function(e) {
+        if (e.target !== clientSearch && e.target !== clientSearchResults) {
+          clientSearchResults.style.display = 'none';
+        }
+      });
+      
+      // Inicializar formulario de reconciliación
+      const initialCash = document.getElementById('initial-cash');
+      const countedCash = document.getElementById('counted-cash');
+      const expectedCash = document.getElementById('expected-cash');
+      const cashDifference = document.getElementById('cash-difference');
+      
+      // Actualizar función para calcular diferencia
+      function updateCashDifference() {
+        const initialValue = parseFloat(initialCash.value) || 0;
+        const countedValue = parseFloat(countedCash.value) || 0;
+        const cashIncomeValue = parseFloat(document.getElementById('cash-income').textContent.replace(/[^\d.-]/g, '')) || 0;
+        
+        const expectedValue = initialValue + cashIncomeValue;
+        expectedCash.value = formatCurrency(expectedValue);
+        
+        const difference = countedValue - expectedValue;
+        cashDifference.value = formatCurrency(difference);
+        
+        // Cambiar color según sea positivo o negativo
+        if (difference < 0) {
+          cashDifference.style.color = 'var(--danger-color)';
+        } else if (difference > 0) {
+          cashDifference.style.color = 'var(--success-color)';
+        } else {
+          cashDifference.style.color = 'var(--text-color)';
+        }
+      }
+      
+      initialCash.addEventListener('input', updateCashDifference);
+      countedCash.addEventListener('input', updateCashDifference);
+      
+      // Inicializar selector de año en historial
+      const yearSelect = document.getElementById('history-year');
+      const currentYear = new Date().getFullYear();
+      
+      for (let i = currentYear - 5; i <= currentYear; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = i;
+        if (i === currentYear) option.selected = true;
+        yearSelect.appendChild(option);
+      }
+    }
+
+    // Cargar datos iniciales
+    function loadInitialData() {
+      // Cargar clientes en tabla de gestión
+      loadClientsTable();
+      
+      // Cargar historial
+      loadHistoryTable();
+      
+      // Actualizar resumen
+      updateSummary();
+    }
+
+    // Inicializar eventos
+    function initEvents() {
+      // Registro de pago
+      document.getElementById('register-payment').addEventListener('click', function() {
+        const loanId = parseInt(document.getElementById('loan-select').value);
+        const paymentAmount = parseFloat(document.getElementById('payment-amount').value);
+        const amountReceived = parseFloat(document.getElementById('amount-received').value);
+        const paymentMethod = document.getElementById('payment-method').value;
+        const notes = document.getElementById('payment-notes').value;
+        
+        if (!loanId || !paymentAmount || !amountReceived || amountReceived < paymentAmount) {
+          alert('Por favor complete correctamente todos los campos requeridos.');
+          return;
+        }
+        
+        // Encontrar el pago pendiente para este préstamo
+        const pendingPayment = payments.find(p => p.loanId === loanId && p.status === 'pending');
+        
+        if (pendingPayment) {
+          // Actualizar el pago
+          pendingPayment.status = 'paid';
+          pendingPayment.paymentDate = new Date().toISOString().split('T')[0];
+          pendingPayment.method = paymentMethod;
+          pendingPayment.amountReceived = amountReceived;
+          pendingPayment.change = amountReceived - paymentAmount;
+          pendingPayment.notes = notes;
+          
+          // Limpiar formulario
+          document.getElementById('clear-payment-form').click();
+          
+          // Actualizar vistas
+          updateSummary();
+          
+          alert('Pago registrado correctamente.');
+        }
+      });
+      
+      // Limpiar formulario de pago
+      document.getElementById('clear-payment-form').addEventListener('click', function() {
+        document.getElementById('client-select').value = '';
+        document.getElementById('client-dni').value = '';
+        document.getElementById('loan-select').innerHTML = '<option value="">Seleccionar préstamo...</option>';
+        document.getElementById('loan-select').disabled = true;
+        document.getElementById('fee-amount').textContent = '$0.00';
+        document.getElementById('due-date').textContent = '--/--/----';
+        document.getElementById('payments-made').textContent = '0/0';
+        document.getElementById('pending-balance').textContent = '$0.00';
+        document.getElementById('payment-amount').value = '';
+        document.getElementById('amount-received').value = '';
+        document.getElementById('change-amount').value = '';
+        document.getElementById('payment-method').value = 'cash';
+        document.getElementById('payment-notes').value = '';
+        document.getElementById('client-search').value = '';
+      });
+      
+      // Filtros en gestión de pagos
+      document.getElementById('apply-filters').addEventListener('click', function() {
+        loadClientsTable();
+      });
+      
+      document.getElementById('clear-filters').addEventListener('click', function() {
+        document.getElementById('management-search').value = '';
+        document.getElementById('status-filter').value = 'all';
+        document.getElementById('date-filter').value = '';
+        loadClientsTable();
+      });
+      
+      // Reconciliación de caja
+      document.getElementById('reconcile-cash').addEventListener('click', function() {
+        const initialCashValue = parseFloat(document.getElementById('initial-cash').value);
+        const countedCashValue = parseFloat(document.getElementById('counted-cash').value);
+        
+        if (isNaN(initialCashValue) || isNaN(countedCashValue)) {
+          alert('Por favor ingrese valores válidos para el monto inicial y el efectivo contado.');
+          return;
+        }
+        
+        // Preparar vista previa del cierre
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('preview-date').textContent = formatDate(today);
+        document.getElementById('preview-initial').textContent = formatCurrency(initialCashValue);
+        
+        const totalIncome = parseFloat(document.getElementById('total-income').textContent.replace(/[^\d.-]/g, ''));
+        document.getElementById('preview-total').textContent = formatCurrency(totalIncome);
+        
+        const cashIncome = parseFloat(document.getElementById('cash-income').textContent.replace(/[^\d.-]/g, ''));
+        document.getElementById('preview-cash').textContent = formatCurrency(cashIncome);
+        
+        const transferIncome = parseFloat(document.getElementById('transfer-income').textContent.replace(/[^\d.-]/g, ''));
+        document.getElementById('preview-transfer').textContent = formatCurrency(transferIncome);
+        
+        const cardIncome = parseFloat(document.getElementById('card-income').textContent.replace(/[^\d.-]/g, ''));
+        document.getElementById('preview-card').textContent = formatCurrency(cardIncome);
+        
+        document.getElementById('preview-counted').textContent = formatCurrency(countedCashValue);
+        
+        const difference = countedCashValue - (initialCashValue + cashIncome);
+        document.getElementById('preview-difference').textContent = formatCurrency(difference);
+        
+        // Mostrar modal de confirmación
+        document.getElementById('day-close-modal').style.display = 'flex';
+      });
+      
+      // Confirmar cierre de día
+      document.getElementById('confirm-close-day').addEventListener('click', function() {
+        const today = new Date().toISOString().split('T')[0];
+        const initialCashValue = parseFloat(document.getElementById('initial-cash').value);
+        const countedCashValue = parseFloat(document.getElementById('counted-cash').value);
+        const totalIncome = parseFloat(document.getElementById('total-income').textContent.replace(/[^\d.-]/g, ''));
+        const cashIncome = parseFloat(document.getElementById('cash-income').textContent.replace(/[^\d.-]/g, ''));
+        const transferIncome = parseFloat(document.getElementById('transfer-income').textContent.replace(/[^\d.-]/g, ''));
+        const cardIncome = parseFloat(document.getElementById('card-income').textContent.replace(/[^\d.-]/g, ''));
+        const difference = countedCashValue - (initialCashValue + cashIncome);
+        const notes = document.getElementById('difference-notes').value;
+        
+        // Crear nuevo registro de cierre
+        const newClosure = {
+          id: closedDays.length + 1,
+          date: today,
+          initialAmount: initialCashValue,
+          totalIncome: totalIncome,
+          cashIncome: cashIncome,
+          transferIncome: transferIncome,
+          cardIncome: cardIncome,
+          countedCash: countedCashValue,
+          difference: difference,
+          notes: notes
+        };
+        
+        closedDays.push(newClosure);
+        
+        // Actualizar historial
+        loadHistoryTable();
+        
+        // Cerrar modal
+        document.getElementById('day-close-modal').style.display = 'none';
+        
+        // Reiniciar valores para el día siguiente
+        document.getElementById('initial-cash').value = countedCashValue;
+        document.getElementById('counted-cash').value = '';
+        document.getElementById('difference-notes').value = '';
+        
+        alert('Día cerrado correctamente.');
+      });
+      
+      // Cancelar cierre de día
+      document.getElementById('cancel-close-day').addEventListener('click', function() {
+        document.getElementById('day-close-modal').style.display = 'none';
+      });
+      
+      // Botón para imprimir balance
+      document.getElementById('print-balance').addEventListener('click', function() {
+        // Preparar contenido para impresión
+        const printContent = document.getElementById('print-content');
+        const date = new Date().toLocaleDateString('es-ES');
+        
+        printContent.innerHTML = `
+          <h2>Reporte de Balance Diario - ${date}</h2>
+          <div class="report-section">
+            <h3>Resumen de Ingresos</h3>
+            <table>
+              <tr>
+                <td><strong>Monto Inicial:</strong></td>
+                <td>${document.getElementById('initial-cash').value ? formatCurrency(parseFloat(document.getElementById('initial-cash').value)) : '$0.00'}</td>
+              </tr>
+              <tr>
+                <td><strong>Total Recaudado:</strong></td>
+                <td>${document.getElementById('total-income').textContent}</td>
+              </tr>
+              <tr>
+                <td><strong>Efectivo:</strong></td>
+                <td>${document.getElementById('cash-income').textContent}</td>
+              </tr>
+              <tr>
+                <td><strong>Transferencias:</strong></td>
+                <td>${document.getElementById('transfer-income').textContent}</td>
+              </tr>
+              <tr>
+                <td><strong>Tarjetas:</strong></td>
+                <td>${document.getElementById('card-income').textContent}</td>
+              </tr>
+            </table>
+          </div>
+          
+          <div class="report-section">
+            <h3>Cuadre de Caja</h3>
+            <table>
+              <tr>
+                <td><strong>Efectivo Esperado:</strong></td>
+                <td>${document.getElementById('expected-cash').value}</td>
+              </tr>
+              <tr>
+                <td><strong>Efectivo Contado:</strong></td>
+                <td>${document.getElementById('counted-cash').value ? formatCurrency(parseFloat(document.getElementById('counted-cash').value)) : '$0.00'}</td>
+              </tr>
+              <tr>
+                <td><strong>Diferencia:</strong></td>
+                <td>${document.getElementById('cash-difference').value}</td>
+              </tr>
+            </table>
+          </div>
+          
+          <div class="report-section">
+            <h3>Notas</h3>
+            <p>${document.getElementById('difference-notes').value || 'Sin notas adicionales.'}</p>
+          </div>
+        `;
+        
+        // Imprimir
+        window.print();
+      });
+      
+      // Filtros en historial
+      document.getElementById('apply-history-filters').addEventListener('click', function() {
+        loadHistoryTable();
+      });
+      
+      // Cerrar todos los modals con el botón X
+      document.querySelectorAll('.close-modal').forEach(function(closeBtn) {
+        closeBtn.addEventListener('click', function() {
+          this.closest('.modal').style.display = 'none';
+        });
+      });
+      
+      // Cerrar modal haciendo clic fuera
+      document.querySelectorAll('.modal').forEach(function(modal) {
+        modal.addEventListener('click', function(e) {
+          if (e.target === this) {
+            this.style.display = 'none';
+          }
+        });
+      });
+      
+      // Botón general de cierre de día
+      document.getElementById('close-day').addEventListener('click', function() {
+        document.querySelector(`[data-view="daily-balance"]`).click();
+        document.getElementById('reconcile-cash').click();
+      });
+      
+      // Imprimir detalle de cierre
+      document.getElementById('print-detail').addEventListener('click', function() {
+        const printContent = document.getElementById('print-content');
+        printContent.innerHTML = document.getElementById('balance-detail-content').innerHTML;
+        window.print();
+      });
+    }
+
+    // Actualizar resumen de la aplicación
+    function updateSummary() {
+      // Contar pagos pendientes y completados
+      const pendingCount = payments.filter(p => p.status === 'pending').length;
+      const completedCount = payments.filter(p => p.status === 'paid').length;
+      
+      document.getElementById('pending-payments').textContent = pendingCount;
+      document.getElementById('completed-payments').textContent = completedCount;
+      
+      // Calcular total recaudado hoy
+      const today = new Date().toISOString().split('T')[0];
+      const todayPayments = payments.filter(p => p.status === 'paid' && p.paymentDate === today);
+      const todayTotal = todayPayments.reduce((sum, p) => sum + p.amount, 0);
+      
+      document.getElementById('today-total').textContent = formatCurrency(todayTotal);
+      
+      // Actualizar balance de caja
+      const initialCashValue = parseFloat(document.getElementById('initial-cash').value) || 0;
+      const cashPayments = todayPayments.filter(p => p.method === 'cash');
+      const cashTotal = cashPayments.reduce((sum, p) => sum + p.amount, 0);
+      
+      document.getElementById('cash-balance').textContent = formatCurrency(initialCashValue + cashTotal);
+      
+      // Actualizar dashboard
+      document.getElementById('today-pending').textContent = payments.filter(p => p.status === 'pending' && p.dueDate === today).length;
+      document.getElementById('today-received').textContent = todayPayments.length;
+      
+      // Estado de caja
+      const countedCashValue = parseFloat(document.getElementById('counted-cash').value) || 0;
+      const expectedCashValue = initialCashValue + cashTotal;
+      const difference = countedCashValue - expectedCashValue;
+      
+      if (countedCashValue === 0) {
+        document.getElementById('cash-status').textContent = 'Pendiente';
+        document.getElementById('cash-status').style.color = 'var(--warning-color)';
+      } else if (difference === 0) {
+        document.getElementById('cash-status').textContent = 'Cuadrada';
+        document.getElementById('cash-status').style.color = 'var(--success-color)';
+      } else if (difference > 0) {
+        document.getElementById('cash-status').textContent = 'Sobrante';
+        document.getElementById('cash-status').style.color = 'var(--primary-color)';
+      } else {
+        document.getElementById('cash-status').textContent = 'Faltante';
+        document.getElementById('cash-status').style.color = 'var(--danger-color)';
+      }
+      
+      // Total por cobrar
+      const totalReceivable = payments.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0);
+      document.getElementById('total-receivable').textContent = formatCurrency(totalReceivable);
+      
+      // Actualizar balance diario
+      const transferPayments = todayPayments.filter(p => p.method === 'transfer');
+      const transferTotal = transferPayments.reduce((sum, p) => sum + p.amount, 0);
+      
+      const cardPayments = todayPayments.filter(p => p.method === 'card');
+      const cardTotal = cardPayments.reduce((sum, p) => sum + p.amount, 0);
+      
+      document.getElementById('total-income').textContent = formatCurrency(todayTotal);
+      document.getElementById('cash-income').textContent = formatCurrency(cashTotal);
+      document.getElementById('transfer-income').textContent = formatCurrency(transferTotal);
+      document.getElementById('card-income').textContent = formatCurrency(cardTotal);
+      
+      // Actualizar diferencia de caja si los campos tienen valores
+      if (document.getElementById('initial-cash').value && document.getElementById('counted-cash').value) {
+        const expectedCash = initialCashValue + cashTotal;
+        document.getElementById('expected-cash').value = formatCurrency(expectedCash);
+        
+        const cashDifference = countedCashValue - expectedCash;
+        document.getElementById('cash-difference').value = formatCurrency(cashDifference);
+        
+        if (cashDifference < 0) {
+          document.getElementById('cash-difference').style.color = 'var(--danger-color)';
+        } else if (cashDifference > 0) {
+          document.getElementById('cash-difference').style.color = 'var(--success-color)';
+        } else {
+          document.getElementById('cash-difference').style.color = 'var(--text-color)';
+        }
+      }
+    }
+
+    // Cargar tabla de clientes para gestión de pagos
+    function loadClientsTable() {
+      const tableBody = document.getElementById('clients-table-body');
+      tableBody.innerHTML = '';
+      
+      // Obtener valores de filtro
+      const searchTerm = document.getElementById('management-search').value.toLowerCase();
+      const statusFilter = document.getElementById('status-filter').value;
+      const dateFilter = document.getElementById('date-filter').value;
+      
+      // Filtrar clientes según los criterios
+      let filteredClients = [...clients];
+      
+      if (searchTerm) {
+        filteredClients = filteredClients.filter(client => 
+          client.name.toLowerCase().includes(searchTerm) || 
+          client.dni.includes(searchTerm)
+        );
+      }
+      
+      // Para cada cliente, crear una fila
+      filteredClients.forEach(client => {
+        // Obtener préstamos de este cliente
+        const clientLoans = loans.filter(loan => loan.clientId === client.id);
+        let clientPayments = [];
+        
+        // Obtener todos los pagos para los préstamos de este cliente
+        clientLoans.forEach(loan => {
+          const loanPayments = payments.filter(payment => payment.loanId === loan.id);
+          
+          // Filtrar por estado si se especifica
+          if (statusFilter !== 'all') {
+            const filteredLoanPayments = loanPayments.filter(payment => payment.status === statusFilter);
+            if (filteredLoanPayments.length === 0) return;
+            clientPayments = clientPayments.concat(filteredLoanPayments);
+          } else {
+            clientPayments = clientPayments.concat(loanPayments);
+          }
+        });
+        
+        // Filtrar por fecha si se especifica
+        if (dateFilter) {
+          clientPayments = clientPayments.filter(payment => 
+            payment.dueDate === dateFilter || 
+            (payment.paymentDate && payment.paymentDate === dateFilter)
+          );
+          
+          if (clientPayments.length === 0) return;
+        }
+        
+        // Si no hay pagos que coincidan con los filtros, no mostrar este cliente
+        if (clientPayments.length === 0) return;
+        
+        // Calcular total pendiente
+        const pendingTotal = clientPayments.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0);
+        
+        // Crear fila del cliente
+        const row = document.createElement('tr');
+        row.className = 'client-row';
+        row.innerHTML = `
+          <td>${client.name}</td>
+          <td>${client.dni}</td>
+          <td>${clientLoans.length}</td>
+          <td>${formatCurrency(pendingTotal)}</td>
+          <td>
+            <button class="action-button view-payments" data-client-id="${client.id}">👁️ Ver</button>
+          </td>
+        `;
+        
+        // Añadir evento para expandir/contraer detalles
+        row.querySelector('.view-payments').addEventListener('click', function() {
+          const clientId = parseInt(this.getAttribute('data-client-id'));
+          showClientPayments(clientId);
+        });
+        
+        tableBody.appendChild(row);
+      });
+      
+      // Si no hay resultados, mostrar mensaje
+      if (tableBody.children.length === 0) {
+        const emptyRow = document.createElement('tr');
+        emptyRow.innerHTML = '<td colspan="5" style="text-align: center;">No se encontraron registros que coincidan con los filtros.</td>';
+        tableBody.appendChild(emptyRow);
+      }
+    }
+
+    // Mostrar pagos de un cliente en modal
+    function showClientPayments(clientId) {
+      const client = clients.find(c => c.id === clientId);
+      const clientLoans = loans.filter(loan => loan.clientId === clientId);
+      
+      // Obtener modal y actualizar título
+      const modal = document.getElementById('client-payments-modal');
+      modal.querySelector('h2').textContent = `Pagos de ${client.name} (${client.dni})`;
+      
+      // Obtener tabla de pagos
+      const tableBody = document.getElementById('client-payments-table-body');
+      tableBody.innerHTML = '';
+      
+      // Para cada préstamo, mostrar sus pagos
+      clientLoans.forEach(loan => {
+        const loanPayments = payments.filter(payment => payment.loanId === loan.id);
+        
+        loanPayments.forEach(payment => {
+          const row = document.createElement('tr');
+          
+          // Definir clase de fila según estado
+          if (payment.status === 'paid') {
+            row.className = 'payment-row payment-paid';
+          } else if (new Date(payment.dueDate) < new Date() && payment.status === 'pending') {
+            row.className = 'payment-row payment-late';
+          } else {
+            row.className = 'payment-row';
+          }
+          
+          // Formatear estado
+          let statusHtml = '';
+          if (payment.status === 'paid') {
+            statusHtml = '<span class="status status-paid">Pagado</span>';
+          } else if (new Date(payment.dueDate) < new Date()) {
+            statusHtml = '<span class="status status-late">Atrasado</span>';
+          } else {
+            statusHtml = '<span class="status status-pending">Pendiente</span>';
+          }
+          
+          row.innerHTML = `
+            <td>${loan.loanNumber}</td>
+            <td>${payment.installmentNumber} / ${loan.term}</td>
+            <td>${formatDate(payment.dueDate)}</td>
+            <td>${statusHtml}</td>
+            <td>${formatCurrency(payment.amount)}</td>
+            <td>
+              <button class="action-button payment-detail" data-payment-id="${payment.id}">📋 Detalle</button>
+              ${payment.status === 'pending' ? `<button class="action-button register-quick-payment" data-payment-id="${payment.id}">💰 Registrar</button>` : ''}
+            </td>
+          `;
+          
+          tableBody.appendChild(row);
+        });
+      });
+      
+      // Añadir eventos a los botones
+      tableBody.querySelectorAll('.payment-detail').forEach(button => {
+        button.addEventListener('click', function() {
+          const paymentId = parseInt(this.getAttribute('data-payment-id'));
+          showPaymentDetail(paymentId);
+        });
+      });
+      
+      tableBody.querySelectorAll('.register-quick-payment').forEach(button => {
+        button.addEventListener('click', function() {
+          const paymentId = parseInt(this.getAttribute('data-payment-id'));
+          const payment = payments.find(p => p.id === paymentId);
+          const loan = loans.find(l => l.id === payment.loanId);
+          const client = clients.find(c => c.id === loan.clientId);
+          
+          // Cerrar modal actual
+          document.getElementById('client-payments-modal').style.display = 'none';
+          
+          // Ir a vista de registro y precargar datos
+          document.querySelector('[data-view="payments"]').click();
+          
+          document.getElementById('client-select').value = client.id;
+          document.getElementById('client-select').dispatchEvent(new Event('change'));
+          
+          setTimeout(() => {
+            document.getElementById('loan-select').value = loan.id;
+            document.getElementById('loan-select').dispatchEvent(new Event('change'));
+          }, 100);
+        });
+      });
+      
+      // Mostrar modal
+      modal.style.display = 'flex';
+    }
+
+    // Mostrar detalle de un pago
+    function showPaymentDetail(paymentId) {
+      const payment = payments.find(p => p.id === paymentId);
+      const loan = loans.find(l => l.id === payment.loanId);
+      const client = clients.find(c => c.id === loan.clientId);
+      
+      // Obtener modal y actualizar contenido
+      const modal = document.getElementById('payment-detail-modal');
+      const contentDiv = document.getElementById('payment-detail-content');
+      
+      let paymentDate = payment.paymentDate ? formatDate(payment.paymentDate) : 'No pagado';
+      let paymentMethod = '';
+      
+      if (payment.method === 'cash') {
+        paymentMethod = 'Efectivo';
+      } else if (payment.method === 'transfer') {
+        paymentMethod = 'Transferencia';
+      } else if (payment.method === 'card') {
+        paymentMethod = 'Tarjeta';
+      }
+      
+      // Crear HTML del detalle
+      contentDiv.innerHTML = `
+        <div class="payment-detail-grid">
+          <div class="detail-section">
+            <h3>Información del Cliente</h3>
+            <p><strong>Nombre:</strong> ${client.name}</p>
+            <p><strong>DNI/Cédula:</strong> ${client.dni}</p>
+            <p><strong>Teléfono:</strong> ${client.phone}</p>
+          </div>
+          
+          <div class="detail-section">
+            <h3>Información del Préstamo</h3>
+            <p><strong>Número:</strong> ${loan.loanNumber}</p>
+            <p><strong>Monto:</strong> ${formatCurrency(loan.amount)}</p>
+            <p><strong>Plazo:</strong> ${loan.term} cuotas</p>
+            <p><strong>Cuota:</strong> ${formatCurrency(loan.feeAmount)}</p>
+            <p><strong>Fecha Inicio:</strong> ${formatDate(loan.startDate)}</p>
+          </div>
+          
+          <div class="detail-section">
+            <h3>Información del Pago</h3>
+            <p><strong>Cuota:</strong> ${payment.installmentNumber} / ${loan.term}</p>
+            <p><strong>Monto:</strong> ${formatCurrency(payment.amount)}</p>
+            <p><strong>Fecha Límite:</strong> ${formatDate(payment.dueDate)}</p>
+            <p><strong>Estado:</strong> ${payment.status === 'paid' ? 'Pagado' : payment.status === 'pending' ? 'Pendiente' : 'Atrasado'}</p>
+            ${payment.status === 'paid' ? `
+              <p><strong>Fecha de Pago:</strong> ${paymentDate}</p>
+              <p><strong>Método de Pago:</strong> ${paymentMethod}</p>
+              ${payment.amountReceived ? `
+                <p><strong>Monto Recibido:</strong> ${formatCurrency(payment.amountReceived)}</p>
+                <p><strong>Cambio:</strong> ${formatCurrency(payment.change)}</p>
+              ` : ''}
+              ${payment.notes ? `<p><strong>Notas:</strong> ${payment.notes}</p>` : ''}
+            ` : ''}
+          </div>
+        </div>
+      `;
+      
+      // Mostrar modal
+      modal.style.display = 'flex';
+    }
+
+    // Cargar tabla de historial
+    function loadHistoryTable() {
+      const tableBody = document.getElementById('history-table-body');
+      tableBody.innerHTML = '';
+      
+      // Obtener valores de filtro
+      const monthFilter = document.getElementById('history-month').value;
+      const yearFilter = document.getElementById('history-year').value;
+      
+      // Filtrar cierres según los criterios
+      let filteredClosures = [...closedDays];
+      
+      if (monthFilter || yearFilter) {
+        filteredClosures = filteredClosures.filter(closure => {
+          const closureDate = new Date(closure.date);
+          const closureMonth = closureDate.getMonth() + 1;
+          const closureYear = closureDate.getFullYear();
+          
+          return (!monthFilter || closureMonth.toString() === monthFilter) && 
+                 (!yearFilter || closureYear.toString() === yearFilter);
+        });
+      }
+      
+      // Ordenar por fecha (más reciente primero)
+      filteredClosures.sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      // Para cada cierre, crear una fila
+      filteredClosures.forEach(closure => {
+        const row = document.createElement('tr');
+        
+        // Formatear diferencia con color
+        let differenceHtml = formatCurrency(closure.difference);
+        if (closure.difference < 0) {
+          differenceHtml = `<span style="color: var(--danger-color)">${differenceHtml}</span>`;
+        } else if (closure.difference > 0) {
+          differenceHtml = `<span style="color: var(--success-color)">${differenceHtml}</span>`;
+        }
+        
+        row.innerHTML = `
+          <td>${formatDate(closure.date)}</td>
+          <td>${formatCurrency(closure.totalIncome)}</td>
+          <td>${formatCurrency(closure.cashIncome)}</td>
+          <td>${formatCurrency(closure.transferIncome)}</td>
+          <td>${formatCurrency(closure.cardIncome)}</td>
+          <td>${differenceHtml}</td>
+          <td>
+            <button class="action-button view-closure" data-closure-id="${closure.id}">👁️ Ver</button>
+          </td>
+        `;
+        
+        // Añadir evento para ver detalle
+        row.querySelector('.view-closure').addEventListener('click', function() {
+          const closureId = parseInt(this.getAttribute('data-closure-id'));
+          showClosureDetail(closureId);
+        });
+        
+        tableBody.appendChild(row);
+      });
+      
+      // Si no hay resultados, mostrar mensaje
+      if (tableBody.children.length === 0) {
+        const emptyRow = document.createElement('tr');
+        emptyRow.innerHTML = '<td colspan="7" style="text-align: center;">No se encontraron registros que coincidan con los filtros.</td>';
+        tableBody.appendChild(emptyRow);
+      }
+    }
+
+    // Mostrar detalle de un cierre
+    function showClosureDetail(closureId) {
+      const closure = closedDays.find(c => c.id === closureId);
+      
+      // Obtener modal y actualizar contenido
+      const modal = document.getElementById('balance-detail-modal');
+      const contentDiv = document.getElementById('balance-detail-content');
+      
+      // Formatear diferencia con color
+      let differenceHtml = formatCurrency(closure.difference);
+      if (closure.difference < 0) {
+        differenceHtml = `<span style="color: var(--danger-color)">${differenceHtml}</span>`;
+      } else if (closure.difference > 0) {
+        differenceHtml = `<span style="color: var(--success-color)">${differenceHtml}</span>`;
+      }
+      
+      // Crear HTML del detalle
+      contentDiv.innerHTML = `
+        <div class="closure-detail">
+          <h3>Reporte de Cierre - ${formatDate(closure.date)}</h3>
+          
+          <div class="detail-section">
+            <h4>Resumen de Ingresos</h4>
+            <table class="detail-table">
+              <tr>
+                <td><strong>Monto Inicial:</strong></td>
+                <td>${formatCurrency(closure.initialAmount)}</td>
+              </tr>
+              <tr>
+                <td><strong>Total Recaudado:</strong></td>
+                <td>${formatCurrency(closure.totalIncome)}</td>
+              </tr>
+              <tr>
+                <td><strong>Efectivo:</strong></td>
+                <td>${formatCurrency(closure.cashIncome)}</td>
+              </tr>
+              <tr>
+                <td><strong>Transferencias:</strong></td>
+                <td>${formatCurrency(closure.transferIncome)}</td>
+              </tr>
+              <tr>
+                <td><strong>Tarjetas:</strong></td>
+                <td>${formatCurrency(closure.cardIncome)}</td>
+              </tr>
+            </table>
+          </div>
+          
+          <div class="detail-section">
+            <h4>Cuadre de Caja</h4>
+            <table class="detail-table">
+              <tr>
+                <td><strong>Efectivo Esperado:</strong></td>
+                <td>${formatCurrency(closure.initialAmount + closure.cashIncome)}</td>
+              </tr>
+              <tr>
+                <td><strong>Efectivo Contado:</strong></td>
+                <td>${formatCurrency(closure.countedCash)}</td>
+              </tr>
+              <tr>
+                <td><strong>Diferencia:</strong></td>
+                <td>${differenceHtml}</td>
+              </tr>
+            </table>
+          </div>
+          
+          <div class="detail-section">
+            <h4>Notas</h4>
+            <p>${closure.notes || 'Sin notas adicionales.'}</p>
+          </div>
+        </div>
+      `;
+      
+      // Mostrar modal
+      modal.style.display = 'flex';
+    }
+  </script>
+</body>
+</html>
