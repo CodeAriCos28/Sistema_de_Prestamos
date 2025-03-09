@@ -4,7 +4,3 @@
 
 # Tecnologia Usadas
 [![My Skills](https://skillicons.dev/icons?i=js,html,css,windows,vscode)](https://skillicons.dev)
-
-
-
-
