@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Cuadre de Ventas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.4;
+            background-color: #f5f5f5;
+            font-size: 14px; /* Reducido de 16px */
+        }
+
+        .container {
+            max-width: 1000px; /* Reducido de 1200px */
+            margin: 0 auto;
+            padding: 8px; /* Reducido de 12px */
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 16px; /* Reducido de 20px */
+            font-size: 20px; /* Reducido de 24px */
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px; /* Reducido de 16px */
+            margin-bottom: 12px; /* Reducido de 16px */
+        }
+
+        .card {
+            background: white;
+            border-radius: 6px; /* Reducido de 8px */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            padding: 8px; /* Reducido de 12px */
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            border-radius: 6px 6px 0 0;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            font-size: 16px; /* Reducido de 20px */
+            color: #333;
+            text-align: center;
+        }
+
+        .card-content {
+            padding: 8px; /* Reducido de 12px */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px; /* Reducido de 16px */
+        }
+
+        th, td {
+            padding: 6px; /* Reducido de 8px */
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+            font-size: 13px; /* Reducido de 16px */
+        }
+
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        input[type="number"] {
+            width: 60px; /* Reducido de 80px */
+            padding: 4px; /* Reducido de 6px */
+            border: 1px solid #ced4da;
+            border-radius: 3px;
+            text-align: center;
+            font-size: 13px; /* Reducido de 14px */
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.2);
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .total-row {
+            font-weight: bold;
+            background-color: #f8f9fa;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .total-general {
+            margin-top: 12px; /* Reducido de 16px */
+        }
+
+        .total-general-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px; /* Reducido de 12px */
+            background-color: #f8f9fa;
+        }
+
+        .total-general h2 {
+            font-size: 16px; /* Reducido de 20px */
+            color: #333;
+        }
+
+        .total-general span {
+            font-size: 16px; /* Reducido de 20px */
+            font-weight: bold;
+            color: #2b6cb0;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 6px; /* Reducido de 8px */
+            }
+            
+            input[type="number"] {
+                width: 100%;
+                max-width: 60px; /* Reducido de 80px */
+            }
+
+            th, td {
+                padding: 4px; /* Reducido aún más para móviles */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sistema de Cuadre de Ventas</h1>
+        
+        <div class="grid">
+            <!-- Tabla de Billetes -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Billetes</h2>
+                </div>
+                <div class="card-content">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Dinero</th>
+                                <th>Cantidad</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="billetes-body"></tbody>
+                        <tfoot>
+                            <tr class="total-row">
+                                <td colspan="2">Subtotal Billetes</td>
+                                <td id="total-billetes" class="text-right">RD$0.00</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tabla de Monedas -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Monedas</h2>
+                </div>
+                <div class="card-content">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Dinero</th>
+                                <th>Cantidad</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="monedas-body"></tbody>
+                        <tfoot>
+                            <tr class="total-row">
+                                <td colspan="2">Subtotal Monedas</td>
+                                <td id="total-monedas" class="text-right">RD$0.00</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total General -->
+        <div class="card total-general">
+            <div class="card-content">
+                <div class="total-general-content">
+                    <h2>Total General</h2>
+                    <span id="total-general">RD$0.00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const billetes = [
+            { value: 2000, quantity: 0, total: 0 },
+            { value: 1000, quantity: 0, total: 0 },
+            { value: 500, quantity: 0, total: 0 },
+            { value: 200, quantity: 0, total: 0 },
+            { value: 100, quantity: 0, total: 0 },
+            { value: 50, quantity: 0, total: 0 }
+        ];
+
+        const monedas = [
+            { value: 25, quantity: 0, total: 0 },
+            { value: 10, quantity: 0, total: 0 },
+            { value: 5, quantity: 0, total: 0 },
+            { value: 1, quantity: 0, total: 0 }
+        ];
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('es-DO', {
+                style: 'currency',
+                currency: 'DOP'
+            }).format(amount);
+        }
+
+        function calculateTotal(items) {
+            return items.reduce((acc, curr) => acc + curr.total, 0);
+        }
+
+        function updateTotals() {
+            const totalBilletes = calculateTotal(billetes);
+            const totalMonedas = calculateTotal(monedas);
+            const totalGeneral = totalBilletes + totalMonedas;
+
+            document.getElementById('total-billetes').textContent = formatCurrency(totalBilletes);
+            document.getElementById('total-monedas').textContent = formatCurrency(totalMonedas);
+            document.getElementById('total-general').textContent = formatCurrency(totalGeneral);
+        }
+
+        function createRow(item) {
+            const row = document.createElement('tr');
+            
+            const valueCell = document.createElement('td');
+            valueCell.textContent = formatCurrency(item.value);
+            row.appendChild(valueCell);
+            
+            const quantityCell = document.createElement('td');
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.min = '0';
+            input.value = item.quantity;
+            input.addEventListener('input', (e) => {
+                item.quantity = parseInt(e.target.value) || 0;
+                item.total = item.quantity * item.value;
+                totalCell.textContent = formatCurrency(item.total);
+                updateTotals();
+            });
+            quantityCell.appendChild(input);
+            row.appendChild(quantityCell);
+            
+            const totalCell = document.createElement('td');
+            totalCell.className = 'text-right';
+            totalCell.textContent = formatCurrency(item.total);
+            row.appendChild(totalCell);
+            
+            return row;
+        }
+
+        function initializeTables() {
+            const billetesBody = document.getElementById('billetes-body');
+            const monedasBody = document.getElementById('monedas-body');
+
+            billetesBody.innerHTML = '';
+            monedasBody.innerHTML = '';
+
+            billetes.forEach(billete => {
+                billetesBody.appendChild(createRow(billete));
+            });
+
+            monedas.forEach(moneda => {
+                monedasBody.appendChild(createRow(moneda));
+            });
+
+            updateTotals();
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeTables);
+    </script>
+</body>
+</html>
