@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f5f5f5;
+            display: flex;
+            flex-direction: row; /* Update 1 */
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: #333;
+            color: white;
+            padding: 20px;
+            transition: all 0.3s ease;
+            width: 250px; /* Update 1 */
+            height: 100vh; /* Update 1 */
+            position: sticky; /* Update 1 */
+            top: 0; /* Update 1 */
+        }
+
+        .sidebar h2 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .sidebar ul {
+            list-style-type: none;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar ul li {
+            margin-bottom: 10px;
+        }
+
+        .sidebar ul li a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 10px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .sidebar ul li a:hover, .sidebar ul li a.active {
+            background: #0099ff;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            max-width: 300px;
+            font-size: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            table-layout: fixed;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        th {
+            background-color: #0099ff;
+            color: white;
+            cursor: pointer;
+        }
+
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .btn {
+            background-color: #0099ff;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #007acc;
+        }
+
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-pending {
+            background-color: #ffd700;
+            color: #333;
+        }
+
+        .status-paid {
+            background-color: #32cd32;
+            color: white;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 15px;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden; /* Update 1 */
+        }
+
+        .modal-content h2 {
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .modal-content h3, .modal-content h4 {
+            margin-bottom: 5px;
+            font-size: 1em;
+        }
+
+        .modal-content table {
+            margin-top: 10px;
+            font-size: 0.9em;
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed; /* Añadido para controlar mejor el ancho de las columnas */
+          
+        }
+
+        .modal-content th, .modal-content td {
+            padding: 5px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+          
+        }
+
+        .modal-content th:first-child, .modal-content td:first-child {
+            width: 5%; /* Ajusta el ancho de la columna Fecha */
+        }
+
+        .modal-content th:last-child, .modal-content td:last-child {
+            width: 25%; /* Ajusta el ancho de la columna Monto */
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 10px;
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        #menuToggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: white;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column; /* Update 2 */
+            }
+            .sidebar {
+                width: 100%; /* Update 2 */
+                height: auto; /* Update 2 */
+                position: fixed; /* Update 2 */
+                top: 0; /* Update 2 */
+                left: -100%; /* Update 2 */
+                z-index: 1000; /* Update 2 */
+                transition: all 0.3s ease; /* Update 2 */
+            }
+
+            .sidebar.active {
+                left: 0; /* Update 2 */
+            }
+
+            #menuToggle {
+                display: block; /* Update 2 */
+                position: fixed; /* Update 2 */
+                top: 10px; /* Update 2 */
+                left: 10px; /* Update 2 */
+                z-index: 1001; /* Update 2 */
+                background: #333; /* Update 2 */
+                color: white; /* Update 2 */
+                border: none; /* Update 2 */
+                padding: 10px; /* Update 2 */
+                font-size: 20px; /* Update 2 */
+                cursor: pointer; /* Update 2 */
+            }
+
+            .main-content {
+                padding-top: 60px; /* Update 2 */
+            }
+            .table-container {
+                overflow-x: auto;
+                width: 100%;
+            }
+
+            table {
+                min-width: 1100px;
+            }
+            .header h1 {
+                font-size: 24px;
+            }
+            .header h2 {
+                font-size: 20px;
+            }
+            .modal-content {
+                width: 95%; 
+                margin: 5% auto; 
+                padding: 15px; 
+            }
+        }
+    </style>
+</head>
+<body>
+    <button id="menuToggle">☰</button>
+    <div class="sidebar" id="sidebar">
+        <h2>Sistema de Gestión</h2>
+        <ul>
+            <li><a href="#" class="active">Clientes</a></li>
+            <li><a href="#">Préstamos</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="header">
+                <h1>Sistema de Gestión</h1>
+                <h2>Clientes</h2>
+                <input type="text" id="searchInput" class="search-box" placeholder="Buscar cliente...">
+            </div>
+
+            <div class="table-container">
+                <table id="clientsTable">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable(0)">Cédula</th>
+                            <th onclick="sortTable(1)">Nombre</th>
+                            <th onclick="sortTable(2)">Dirección</th>
+                            <th onclick="sortTable(3)">Departamento</th>
+                            <th onclick="sortTable(4)">Total</th>
+                            <th onclick="sortTable(5)">Abono</th>
+                            <th onclick="sortTable(6)">Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientsTableBody">
+                        <!-- Table content will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="historyModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Historial de Pagos</h2>
+            <div id="historyContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data - Replace with your actual data source
+        const clients = [
+            {
+                cedula: "001-0000000-1",
+                nombre: "Juan Pérez",
+                direccion: "Calle Principal #123",
+                departamento: "Santo Domingo",
+                total: 10000.00,
+                abono: 3000.00,
+                estado: "Pendiente",
+                historial: [
+                    { fecha: "2024-02-01", monto: 1000.00 },
+                    { fecha: "2024-01-15", monto: 2000.00 }
+                ]
+            },
+            {
+                cedula: "002-0000000-2",
+                nombre: "María García",
+                direccion: "Av. Central #456",
+                departamento: "Santiago",
+                total: 15000.00,
+                abono: 15000.00,
+                estado: "Pagado",
+                historial: [
+                    { fecha: "2024-02-05", monto: 7500.00 },
+                    { fecha: "2024-01-20", monto: 7500.00 }
+                ]
+            },
+            // Add more clients as needed
+        ];
+
+        // Populate table
+        function populateTable(data) {
+            const tableBody = document.getElementById('clientsTableBody');
+            tableBody.innerHTML = '';
+
+            data.forEach(client => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${client.cedula}</td>
+                    <td>${client.nombre}</td>
+                    <td>${client.direccion}</td>
+                    <td>${client.departamento}</td>
+                    <td>RD$ ${client.total.toFixed(2)}</td>
+                    <td>RD$ ${client.abono.toFixed(2)}</td>
+                    <td><span class="status ${client.estado === 'Pagado' ? 'status-paid' : 'status-pending'}">${client.estado}</span></td>
+                    <td>
+                        <button class="btn" onclick="showHistory('${client.cedula}')">
+                            Historial
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('keyup', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredClients = clients.filter(client => 
+                client.cedula.toLowerCase().includes(searchTerm) ||
+                client.nombre.toLowerCase().includes(searchTerm) ||
+                client.direccion.toLowerCase().includes(searchTerm) ||
+                client.departamento.toLowerCase().includes(searchTerm)
+            );
+            populateTable(filteredClients);
+        });
+
+        // Sort table
+        function sortTable(n) {
+            const table = document.getElementById("clientsTable");
+            let rows, switching = true;
+            let i, shouldSwitch, dir = "asc";
+            let switchcount = 0;
+
+            while (switching) {
+                switching = false;
+                rows = table.rows;
+
+                for (i = 1; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+                    const x = rows[i].getElementsByTagName("TD")[n];
+                    const y = rows[i + 1].getElementsByTagName("TD")[n];
+
+                    let xValue = x.innerHTML.toLowerCase();
+                    let yValue = y.innerHTML.toLowerCase();
+
+                    // Convert currency values for comparison
+                    if (xValue.includes('rd$')) {
+                        xValue = parseFloat(xValue.replace('RD$ ', ''));
+                        yValue = parseFloat(yValue.replace('RD$ ', ''));
+                    }
+
+                    if (dir === "asc") {
+                        if (xValue > yValue) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir === "desc") {
+                        if (xValue < yValue) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    switchcount++;
+                } else {
+                    if (switchcount === 0 && dir === "asc") {
+                        dir = "desc";
+                        switching = true;
+                    }
+                }
+            }
+        }
+
+        // Modal functionality
+        const modal = document.getElementById('historyModal');
+        const span = document.getElementsByClassName('close')[0];
+
+        function showHistory(cedula) {
+            const client = clients.find(c => c.cedula === cedula);
+            const historyContent = document.getElementById('historyContent');
+            
+            if (client) {
+                let historyHTML = `
+                    <h3>Cliente: ${client.nombre}</h3>
+                    <h4>Cédula: ${client.cedula}</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                // Limitar a las últimas 5 entradas del historial
+                const limitedHistory = client.historial.slice(-5);
+
+                limitedHistory.forEach(payment => {
+                    historyHTML += `
+                        <tr>
+                            <td>${payment.fecha}</td>
+                            <td>RD$ ${payment.monto.toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+
+                historyHTML += '</tbody></table>';
+                historyContent.innerHTML = historyHTML;
+            }
+
+            modal.style.display = "block";
+        }
+
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        // Toggle sidebar for mobile
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+
+        menuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('active');
+            this.classList.toggle('active');
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            if (window.innerWidth <= 768) {
+                if (!sidebar.contains(event.target) && !menuToggle.contains(event.target)) {
+                    sidebar.classList.remove('active');
+                    menuToggle.classList.remove('active');
+                }
+            }
+        });
+
+        // Adjust layout on window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('active');
+                menuToggle.classList.remove('active');
+            }
+        });
+
+        // Initial table population
+        populateTable(clients);
+    </script>
+</body>
+</html>

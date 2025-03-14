@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es-DO">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Préstamos RD</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .calculadora {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-col {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #resultado {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .resumen-columnas {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .columna-resumen {
+            flex: 1;
+            min-width: 200px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        #tablaAmortizacion {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+            display: none;
+        }
+
+        #tablaAmortizacion th, #tablaAmortizacion td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        #tablaAmortizacion th {
+            background-color: #4CAF50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculadora">
+        <h2>Calculadora de Préstamos - República Dominicana</h2>
+        
+        <!-- Nuevos campos de cédula y nombre -->
+        <div class="form-row">
+            <div class="form-col">
+                <div class="form-group">
+                    <label for="cedula">Cédula</label>
+                    <input type="text" id="cedula" required
+                    placeholder="320-1236549-5">
+                </div>
+            </div>
+            <div class="form-col">
+                <div class="form-group">
+                    <label for="nombre">Nombre completo</label>
+                    <input type="text" id="nombre" required>
+                </div>
+            </div>
+        </div>
+
+        <form id="formularioPrestamo">
+            <div class="form-group">
+                <label for="monto">Monto del préstamo (RD$)</label>
+                <input type="text" id="monto" required 
+                       placeholder=" 1,000,000.00"
+                       pattern="^\d{1,3}(,\d{3})*(\.\d+)?$">
+            </div>
+
+            <!-- Resto del formulario se mantiene igual -->
+            <div class="form-group">
+                <label for="tasa">Tasa de interés anual (%)</label>
+                <input type="number" id="tasa" step="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label for="plazo">Plazo</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" id="plazo" required>
+                    <select id="unidadPlazo">
+                        <option value="meses">Meses</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="frecuencia">Frecuencia de pagos</label>
+                <select id="frecuencia" required>
+                    <option value="mensual">Mensual</option>
+                    <option value="quincenal">Quincenal</option>
+                    <option value="semanal">Semanal</option>
+                </select>
+            </div>
+
+            <div class="form-row" style="gap: 10px;">
+                <button type="button" onclick="calcularPrestamo()">Calcular</button>
+                <button type="button" onclick="guardarInformacion()" style="background-color: #2196F3;">Guardar</button>
+            </div>
+        </form>
+
+        <!-- Resultados y tabla actualizados -->
+        <div id="resultado">
+            <div class="resumen-columnas">
+                <div class="columna-resumen">
+                    <h3>Monto del préstamo</h3>
+                    <p id="montoResumen">RD$0.00</p>
+                </div>
+                <div class="columna-resumen">
+                    <h3>Cuota periódica</h3>
+                    <p id="cuota">RD$0.00</p>
+                </div>
+                <div class="columna-resumen">
+                    <h3>Total a pagar</h3>
+                    <p id="total">RD$0.00</p>
+                </div>
+                <div class="columna-resumen">
+                    <h3>Intereses totales</h3>
+                    <p id="intereses">RD$0.00</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla sin columna de estado -->
+        <table id="tablaAmortizacion">
+            <thead>
+                <tr>
+                    <th>Pago #</th>
+                    <th>Capital</th>
+                    <th>Interés</th>
+                    <th>Total Pago</th>
+                    <th>Balance</th>
+                    <th>Fecha Pago</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTabla">
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+   
+// Función de formato RD
+function formatoRD(numero) {
+    return new Intl.NumberFormat('es-DO', {
+        style: 'currency',
+        currency: 'DOP',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(numero);
+}
+
+// Formatear monto mientras se escribe
+document.getElementById('monto').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/,/g, '');
+    if (!isNaN(value) && value !== '') {
+        e.target.value = parseFloat(value).toLocaleString('es-DO');
+    }
+});
+
+
+function calcularPrestamo() {
+    // Obtener valores del formulario
+    const capital = parseFloat(document.getElementById('monto').value.replace(/,/g, ''));
+    const tasaAnual = parseFloat(document.getElementById('tasa').value);
+    const tiempoMeses = parseFloat(document.getElementById('plazo').value);
+    const frecuencia = document.getElementById('frecuencia').value;
+
+    if (!capital || !tasaAnual || !tiempoMeses) {
+        alert("Complete todos los campos requeridos");
+        return;
+    }
+
+    // Calcular interés mensual
+    const tasaMensual = tasaAnual / 100;  // Tasa mensual directa (no se divide entre 12)
+    const interesMensual = capital * tasaMensual;
+    
+    // Calcular totales según frecuencia de pago
+    let numeroPagos;
+    let cuotaInteres;
+    
+    switch(frecuencia) {
+        case 'mensual': 
+            numeroPagos = tiempoMeses;
+            cuotaInteres = interesMensual;
+            break;
+        case 'quincenal':
+            numeroPagos = tiempoMeses * 2;
+            cuotaInteres = interesMensual / 2;
+            break;
+        case 'semanal':
+            numeroPagos = tiempoMeses * 4;
+            cuotaInteres = interesMensual / 4;
+            break;
+    }
+
+    // En sanes, el capital se paga al final y solo se van pagando los intereses
+    const cuotaRegular = cuotaInteres; // Solo intereses
+    const cuotaFinal = cuotaInteres + capital; // Última cuota incluye el capital
+    const totalIntereses = interesMensual * tiempoMeses;
+    const totalPagar = capital + totalIntereses;
+
+    // Actualizar resultados
+    document.getElementById('resultado').style.display = 'block';
+    document.getElementById('montoResumen').textContent = formatoRD(capital);
+    document.getElementById('cuota').textContent = formatoRD(cuotaRegular);
+    document.getElementById('total').textContent = formatoRD(totalPagar);
+    document.getElementById('intereses').textContent = formatoRD(totalIntereses);
+
+    generarTablaAmortizacion(capital, cuotaRegular, cuotaFinal, numeroPagos, frecuencia);
+}
+
+function generarTablaAmortizacion(capital, cuotaRegular, cuotaFinal, numeroPagos, frecuencia) {
+    const cuerpoTabla = document.getElementById('cuerpoTabla');
+    const tabla = document.getElementById('tablaAmortizacion');
+    cuerpoTabla.innerHTML = '';
+    tabla.style.display = 'table';
+
+    let fechaPago = new Date();
+    let saldo = capital;
+
+    for (let i = 1; i <= numeroPagos; i++) {
+        const esUltimoPago = i === numeroPagos;
+        const capitalPago = esUltimoPago ? capital : 0;
+        const interesPago = cuotaRegular;
+        const totalPago = esUltimoPago ? cuotaFinal : cuotaRegular;
+        
+        if (esUltimoPago) {
+            saldo = 0;
+        }
+
+        // Actualizar fecha
+        switch(frecuencia) {
+            case 'mensual': fechaPago.setMonth(fechaPago.getMonth() + 1); break;
+            case 'quincenal': fechaPago.setDate(fechaPago.getDate() + 15); break;
+            case 'semanal': fechaPago.setDate(fechaPago.getDate() + 7); break;
+        }
+
+        const fila = document.createElement('tr');
+        fila.innerHTML = `
+            <td>${i}</td>
+            <td>${formatoRD(capitalPago)}</td>
+            <td>${formatoRD(interesPago)}</td>
+            <td>${formatoRD(totalPago)}</td>
+            <td>${formatoRD(saldo)}</td>
+            <td>${fechaPago.toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
+        `;
+        cuerpoTabla.appendChild(fila);
+    }
+}
+
+    </script>
+</body>
+</html>
