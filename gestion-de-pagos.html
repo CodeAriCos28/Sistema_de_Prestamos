@@ -1,0 +1,425 @@
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión de Pagos - Sistema de Gestión de Préstamos</title>
+    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f0f2f5;
+        display: flex;
+        min-height: 100vh;
+      }
+      
+      /* Barra lateral */
+      .sidebar {
+        width: 250px;
+        background-color: #2c3e50;
+        color: white;
+        padding: 20px 0;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.3s;
+      }
+      
+      .sidebar-header {
+        padding: 0 20px 20px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+      }
+      
+      .sidebar-menu {
+        list-style: none;
+        padding: 0;
+        margin: 20px 0;
+      }
+      
+      .sidebar-menu li {
+        padding: 10px 20px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      
+      .sidebar-menu li:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+      
+      .sidebar-menu li.active {
+        background-color: #3498db;
+      }
+      
+      .sidebar-menu a {
+        color: white;
+        text-decoration: none;
+        display: block;
+      }
+      
+      .sidebar-footer {
+        margin-top: auto;
+        padding: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+      }
+      
+      /* Contenido principal */
+      .main-content {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+      }
+      
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+      }
+      
+      .header h1 {
+        color: #2c3e50;
+        margin: 0;
+      }
+      
+      /* Filtros */
+      .filters {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+      
+      .search-input {
+        flex: 1;
+        min-width: 200px;
+        padding: 10px 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+      }
+      
+      .filter-select {
+        min-width: 150px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+      }
+      
+      .search-button {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s;
+      }
+      
+      .search-button:hover {
+        background-color: #2980b9;
+      }
+      
+      /* Tabla de pagos */
+      .payments-table {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        overflow-x: auto;
+      }
+      
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      
+      th, td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+      }
+      
+      th {
+        font-weight: 600;
+        color: #2c3e50;
+      }
+      
+      tr:hover {
+        background-color: #f8f9fa;
+      }
+      
+      .status-badge {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+      }
+      
+      .status-paid {
+        background-color: #e8f7f0;
+        color: #27ae60;
+      }
+      
+      .status-pending {
+        background-color: #fff7e6;
+        color: #f39c12;
+      }
+      
+      .status-late {
+        background-color: #fee;
+        color: #e74c3c;
+      }
+      
+      .action-button {
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+        border: none;
+        transition: background-color 0.3s;
+        margin-right: 5px;
+      }
+      
+      .view-button {
+        background-color: #3498db;
+        color: white;
+      }
+      
+      .view-button:hover {
+        background-color: #2980b9;
+      }
+      
+      .edit-button {
+        background-color: #f39c12;
+        color: white;
+      }
+      
+      .edit-button:hover {
+        background-color: #e67e22;
+      }
+      
+      .pagination {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+      }
+      
+      .pagination-button {
+        padding: 8px 15px;
+        margin: 0 5px;
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      
+      .pagination-button:hover {
+        background-color: #e9ecef;
+      }
+      
+      .pagination-button.active {
+        background-color: #3498db;
+        color: white;
+        border-color: #3498db;
+      }
+      
+      /* Toggle para la barra lateral */
+      .sidebar-toggle {
+        position: fixed;
+        left: 10px;
+        top: 10px;
+        z-index: 100;
+        background-color: #3498db;
+        color: white;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        display: none;
+      }
+      
+      /* Responsive */
+      @media (max-width: 768px) {
+        .sidebar {
+          position: fixed;
+          left: -250px;
+          height: 100vh;
+          z-index: 999;
+        }
+        
+        .sidebar.active {
+          left: 0;
+        }
+        
+        .main-content {
+          width: 100%;
+        }
+        
+        .sidebar-toggle {
+          display: flex;
+        }
+        
+        .action-button {
+          padding: 5px 8px;
+          font-size: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+    
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h2>Sistema de Préstamos</h2>
+      </div>
+      
+      <ul class="sidebar-menu">
+        <li><a href="dashboard.html">Dashboard</a></li>
+        <li><a href="registro-de-pagos.html">Registro de Pagos</a></li>
+        <li class="active"><a href="gestion-de-pagos.html">Gestión de Pagos</a></li>
+        <li><a href="cuadre-diario.html">Cuadre Diario</a></li>
+        <li><a href="historial.html">Historial</a></li>
+      </ul>
+      
+      <div class="sidebar-footer">
+        <p>&copy; 2025 Sistema de Préstamos</p>
+      </div>
+    </div>
+    
+    <div class="main-content">
+      <div class="header">
+        <h1>Gestión de Pagos</h1>
+      </div>
+      
+      <div class="filters">
+        <input type="text" class="search-input" placeholder="Buscar por nombre o ID...">
+        
+        <select class="filter-select">
+          <option value="">Todos los estados</option>
+          <option value="paid">Pagado</option>
+          <option value="pending">Pendiente</option>
+          <option value="late">Atrasado</option>
+        </select>
+        
+        <select class="filter-select">
+          <option value="">Todas las fechas</option>
+          <option value="today">Hoy</option>
+          <option value="week">Esta semana</option>
+          <option value="month">Este mes</option>
+        </select>
+        
+        <button class="search-button">Buscar</button>
+      </div>
+      
+      <div class="payments-table">
+        <table>
+          <thead>
+            <tr>
+              <th>ID Pago</th>
+              <th>Cliente</th>
+              <th>ID Préstamo</th>
+              <th>Fecha</th>
+              <th>Monto</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>PAY-001</td>
+              <td>Juan Pérez</td>
+              <td>LOAN-1234</td>
+              <td>15/03/2025</td>
+              <td>$150.00</td>
+              <td><span class="status-badge status-paid">Pagado</span></td>
+              <td>
+                <button class="action-button view-button">Ver</button>
+                <button class="action-button edit-button">Editar</button>
+              </td>
+            </tr>
+            <tr>
+              <td>PAY-002</td>
+              <td>María González</td>
+              <td>LOAN-5678</td>
+              <td>15/03/2025</td>
+              <td>$200.00</td>
+              <td><span class="status-badge status-pending">Pendiente</span></td>
+              <td>
+                <button class="action-button view-button">Ver</button>
+                <button class="action-button edit-button">Editar</button>
+              </td>
+            </tr>
+            <tr>
+              <td>PAY-003</td>
+              <td>Carlos Rodríguez</td>
+              <td>LOAN-9012</td>
+              <td>14/03/2025</td>
+              <td>$175.00</td>
+              <td><span class="status-badge status-late">Atrasado</span></td>
+              <td>
+                <button class="action-button view-button">Ver</button>
+                <button class="action-button edit-button">Editar</button>
+              </td>
+            </tr>
+            <tr>
+              <td>PAY-004</td>
+              <td>Ana Martínez</td>
+              <td>LOAN-3456</td>
+              <td>14/03/2025</td>
+              <td>$300.00</td>
+              <td><span class="status-badge status-paid">Pagado</span></td>
+              <td>
+                <button class="action-button view-button">Ver</button>
+                <button class="action-button edit-button">Editar</button>
+              </td>
+            </tr>
+            <tr>
+              <td>PAY-005</td>
+              <td>Roberto Fernández</td>
+              <td>LOAN-7890</td>
+              <td>13/03/2025</td>
+              <td>$250.00</td>
+              <td><span class="status-badge status-pending">Pendiente</span></td>
+              <td>
+                <button class="action-button view-button">Ver</button>
+                <button class="action-button edit-button">Editar</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div class="pagination">
+          <button class="pagination-button">«</button>
+          <button class="pagination-button active">1</button>
+          <button class="pagination-button">2</button>
+          <button class="pagination-button">3</button>
+          <button class="pagination-button">»</button>
+        </div>
+      </div>
+    </div>
+    
+    <script>
+      document.getElementById('sidebarToggle').addEventListener('click', function() {
+        document.getElementById('sidebar').classList.toggle('active');
+      });
+    </script>
+  </body>
+</html>
