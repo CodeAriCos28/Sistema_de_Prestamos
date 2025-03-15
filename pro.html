@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfil De Los Cliente - Sistema de Préstamos</title>
+    <title>Perfil de Cliente - Sistema de Préstamos</title>
     <style>
         * {
             margin: 0;
@@ -34,13 +34,11 @@
             border-radius: 0;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             overflow-y: auto;
-            
         }
 
         .sidebar h2 {
             font-size: 20px;
             margin-bottom: 20px;
-            text-align: center;
         }
 
         .sidebar ul {
@@ -80,7 +78,6 @@
             padding: 15px;
             border-radius: 0;
             margin: -20px -20px 20px -20px;
-            text-align: center;
         }
 
         .header h1 {
@@ -240,7 +237,7 @@
 </head>
 <body>
     <div class="sidebar">
-        <h2>Panel De Control</h2>
+        <h2>Menú</h2>
         <ul>
             <li><a href="#summary">Resumen</a></li>
             <li><a href="#personal">Datos Personales</a></li>
@@ -254,7 +251,7 @@
 
     <div class="container">
         <div class="header">
-            <h1>Perfil De Los Cliente</h1>
+            <h1>Perfil de Cliente</h1>
             <p>Sistema de Préstamos Financieros</p>
         </div>
 
@@ -357,6 +354,12 @@
                     <label>Dia de Pago:</label>
                     <span id="summary-date">30</span>
                 </div>
+            </div>
+        </div>
+
+        <div class="section" id="payment">
+            <h2 class="toggle-section">Historial de Pagos</h2>
+            <div class="content">
                 <div class="field">
                     <label>Retrasos o incumplimientos:</label>
                     <span>1 retraso (3 días)</span>
